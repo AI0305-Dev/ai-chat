@@ -8,6 +8,7 @@ on:
 env:
   PROJECT_ID: ai-chat-496407
   REGION: asia-northeast1
+  REGISTRY: asia-northeast1-docker.pkg.dev
   BACKEND_IMAGE: asia-northeast1-docker.pkg.dev/ai-chat-496407/ai-chat/backend:latest
   FRONTEND_IMAGE: asia-northeast1-docker.pkg.dev/ai-chat-496407/ai-chat/frontend:latest
   BACKEND_URL: https://ai-chat-backend-471439678120.asia-northeast1.run.app
@@ -30,12 +31,13 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v2
 
-      - name: Build image via Cloud Build
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+
+      - name: Build and push backend image
         run: |
-          gcloud builds submit ./backend \
-            --tag=${{ env.BACKEND_IMAGE }} \
-            --region=${{ env.REGION }} \
-            --project=${{ env.PROJECT_ID }}
+          docker build -t ${{ env.BACKEND_IMAGE }} ./backend
+          docker push ${{ env.BACKEND_IMAGE }}
 
       - name: Deploy to Cloud Run
         run: |
@@ -69,13 +71,16 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v2
 
-      - name: Build image via Cloud Build
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+
+      - name: Build and push frontend image
         run: |
-          gcloud builds submit ./frontend \
-            --config=./frontend/cloudbuild.yaml \
-            --region=${{ env.REGION }} \
-            --substitutions="_NEXT_PUBLIC_API_URL=${{ env.BACKEND_URL }}" \
-            --project=${{ env.PROJECT_ID }}
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=${{ env.BACKEND_URL }} \
+            -t ${{ env.FRONTEND_IMAGE }} \
+            ./frontend
+          docker push ${{ env.FRONTEND_IMAGE }}
 
       - name: Deploy to Cloud Run
         run: |
