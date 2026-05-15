@@ -1,0 +1,92 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ai-chat-496407
+  REGION: asia-northeast1
+  BACKEND_IMAGE: asia-northeast1-docker.pkg.dev/ai-chat-496407/ai-chat/backend:latest
+  FRONTEND_IMAGE: asia-northeast1-docker.pkg.dev/ai-chat-496407/ai-chat/frontend:latest
+  BACKEND_URL: https://ai-chat-backend-471439678120.asia-northeast1.run.app
+  FRONTEND_URL: https://ai-chat-frontend-471439678120.asia-northeast1.run.app
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build image via Cloud Build
+        run: |
+          gcloud builds submit ./backend \
+            --tag=${{ env.BACKEND_IMAGE }} \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }}
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ai-chat-backend \
+            --image=${{ env.BACKEND_IMAGE }} \
+            --region=${{ env.REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --min-instances=0 \
+            --max-instances=10 \
+            --memory=512Mi \
+            --cpu=1 \
+            --port=8080 \
+            --set-secrets="GROQ_API_KEY=GROQ_API_KEY:latest,DATABASE_URL=DATABASE_URL:latest" \
+            --set-env-vars="FRONTEND_URL=${{ env.FRONTEND_URL }}" \
+            --project=${{ env.PROJECT_ID }}
+
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build image via Cloud Build
+        run: |
+          gcloud builds submit ./frontend \
+            --config=./frontend/cloudbuild.yaml \
+            --region=${{ env.REGION }} \
+            --substitutions="_NEXT_PUBLIC_API_URL=${{ env.BACKEND_URL }}" \
+            --project=${{ env.PROJECT_ID }}
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ai-chat-frontend \
+            --image=${{ env.FRONTEND_IMAGE }} \
+            --region=${{ env.REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --min-instances=0 \
+            --max-instances=10 \
+            --memory=512Mi \
+            --cpu=1 \
+            --port=3000 \
+            --project=${{ env.PROJECT_ID }}
