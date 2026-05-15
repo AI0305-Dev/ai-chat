@@ -36,3 +36,6 @@ Thumbs.db
 
 # misc
 .turbo/
+
+# GCP service account key
+key.json
