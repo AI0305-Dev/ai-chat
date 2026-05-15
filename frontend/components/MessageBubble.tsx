@@ -1,10 +1,11 @@
 type Props = {
   role: 'user' | 'assistant'
   content: string
+  imageDataUrl?: string
   streaming?: boolean
 }
 
-export default function MessageBubble({ role, content, streaming }: Props) {
+export default function MessageBubble({ role, content, imageDataUrl, streaming }: Props) {
   const isUser = role === 'user'
 
   return (
@@ -16,6 +17,13 @@ export default function MessageBubble({ role, content, streaming }: Props) {
             : 'bg-muted text-foreground rounded-bl-sm'
         }`}
       >
+        {imageDataUrl && (
+          <img
+            src={imageDataUrl}
+            alt="添付画像"
+            className="max-w-full rounded-xl mb-2 max-h-64 object-contain"
+          />
+        )}
         {content}
         {streaming && (
           <span className="inline-block w-0.5 h-3.5 bg-current ml-0.5 align-middle animate-pulse" />

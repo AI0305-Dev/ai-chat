@@ -5,11 +5,12 @@ export type Message = { role: 'user' | 'assistant'; content: string }
 export async function* sendMessage(
   sessionId: string,
   message: string,
+  imageDataUrl?: string,
 ): AsyncGenerator<string> {
   const res = await fetch(`${API_URL}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sessionId, message }),
+    body: JSON.stringify({ sessionId, message, image: imageDataUrl }),
   })
 
   if (!res.body) throw new Error('No response body')

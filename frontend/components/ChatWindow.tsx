@@ -6,6 +6,7 @@ import MessageBubble from './MessageBubble'
 export type ChatMessage = {
   role: 'user' | 'assistant'
   content: string
+  imageDataUrl?: string
   streaming?: boolean
 }
 
@@ -32,6 +33,7 @@ export default function ChatWindow({ messages }: Props) {
           key={i}
           role={msg.role}
           content={msg.content}
+          imageDataUrl={msg.imageDataUrl}
           streaming={msg.streaming}
         />
       ))}

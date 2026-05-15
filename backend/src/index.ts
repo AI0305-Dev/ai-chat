@@ -68,7 +68,7 @@ app.use('*', cors({
 }))
 
 app.use('/api/chat',
-  bodyLimit({ maxSize: 10 * 1024, onError: (c) => c.json({ error: 'Request body too large' }, 413) }),
+  bodyLimit({ maxSize: 7 * 1024 * 1024, onError: (c) => c.json({ error: 'Request body too large' }, 413) }),
   rateLimit(20, 60 * 1000),
 )
 

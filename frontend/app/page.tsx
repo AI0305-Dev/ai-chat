@@ -20,19 +20,19 @@ export default function Home() {
     })
   }, [])
 
-  async function handleSend(content: string) {
+  async function handleSend(content: string, imageDataUrl?: string) {
     if (isStreaming) return
     setError(null)
 
     setMessages((prev) => [
       ...prev,
-      { role: 'user', content },
+      { role: 'user', content, imageDataUrl },
       { role: 'assistant', content: '', streaming: true },
     ])
     setIsStreaming(true)
 
     try {
-      for await (const chunk of sendMessage(sessionId, content)) {
+      for await (const chunk of sendMessage(sessionId, content, imageDataUrl)) {
         setMessages((prev) => {
           const updated = [...prev]
           const last = updated[updated.length - 1]
