@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_API_URL=$_NEXT_PUBLIC_API_URL'
+      - '-t'
+      - 'asia-northeast1-docker.pkg.dev/ai-chat-496407/ai-chat/frontend:latest'
+      - '.'
+images:
+  - 'asia-northeast1-docker.pkg.dev/ai-chat-496407/ai-chat/frontend:latest'
